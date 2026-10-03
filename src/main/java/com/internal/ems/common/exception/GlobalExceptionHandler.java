@@ -16,57 +16,74 @@ import jakarta.servlet.http.HttpServletRequest;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+        private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(ResourceNotFoundException.class)
+        public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex,
+                        HttpServletRequest request) {
 
-        log.warn("RESOURCE_NOT_FOUND: {}", ex.getMessage());
+                log.warn("RESOURCE_NOT_FOUND: {}", ex.getMessage());
 
-        return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponse(
-                        "RESOURCE_NOT_FOUND",
-                        ex.getMessage(),
-                        request.getRequestURI(),
-                        Instant.now()));
+                return ResponseEntity
+                                .status(HttpStatus.NOT_FOUND)
+                                .body(new ErrorResponse(
+                                                "RESOURCE_NOT_FOUND",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                Instant.now()));
 
-    }
+        }
 
-    @ExceptionHandler(DuplicateResourceException.class)
-    public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex,
-            HttpServletRequest request) {
+        @ExceptionHandler(DuplicateResourceException.class)
+        public ResponseEntity<ErrorResponse> handleDuplicateResource(DuplicateResourceException ex,
+                        HttpServletRequest request) {
 
-        log.warn("DUPLICATE_RESOURCE: {}", ex.getMessage());
+                log.warn("DUPLICATE_RESOURCE: {}", ex.getMessage());
 
-        return ResponseEntity
-                .status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse(
-                        "DUPLICATE_RESOURCE",
-                        ex.getMessage(),
-                        request.getRequestURI(),
-                        Instant.now()));
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(new ErrorResponse(
+                                                "DUPLICATE_RESOURCE",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                Instant.now()));
 
-    }
+        }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
-            HttpServletRequest request) {
-        String validationErrors = ex.getBindingResult().getFieldErrors().stream()
-                .map(error -> error.getField() + ": " + error.getDefaultMessage())
-                .collect(Collectors.joining(", "));
-        log.warn("Validation failed for request {}: {}", request.getRequestURI(), validationErrors);
-        return ResponseEntity.badRequest()
-                .body(new ErrorResponse("VALIDATION_ERROR", validationErrors, request.getRequestURI(), Instant.now()));
-    }
+        @ExceptionHandler(MethodArgumentNotValidException.class)
+        public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException ex,
+                        HttpServletRequest request) {
+                String validationErrors = ex.getBindingResult().getFieldErrors().stream()
+                                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                                .collect(Collectors.joining(", "));
+                log.warn("Validation failed for request {}: {}", request.getRequestURI(), validationErrors);
+                return ResponseEntity.badRequest()
+                                .body(new ErrorResponse("VALIDATION_ERROR", validationErrors, request.getRequestURI(),
+                                                Instant.now()));
+        }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
-        log.error("Unhandled exception at {}", request.getRequestURI(), ex);
-        return ResponseEntity.internalServerError()
-                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred",
-                        request.getRequestURI(), Instant.now()));
-    }
+        @ExceptionHandler(Exception.class)
+        public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex, HttpServletRequest request) {
+                log.error("Unhandled exception at {}", request.getRequestURI(), ex);
+                return ResponseEntity.internalServerError()
+                                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred",
+                                                request.getRequestURI(), Instant.now()));
+        }
+
+        @ExceptionHandler(ResourceConflictException.class)
+        public ResponseEntity<ErrorResponse> handleResourceConflict(
+                        ResourceConflictException ex,
+                        HttpServletRequest request) {
+
+                log.warn("RESOURCE_CONFLICT: {}", ex.getMessage());
+
+                return ResponseEntity
+                                .status(HttpStatus.CONFLICT)
+                                .body(new ErrorResponse(
+                                                "RESOURCE_CONFLICT",
+                                                ex.getMessage(),
+                                                request.getRequestURI(),
+                                                Instant.now()));
+        }
 
 }

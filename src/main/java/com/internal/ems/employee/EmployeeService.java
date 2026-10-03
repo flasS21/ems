@@ -62,4 +62,42 @@ public class EmployeeService {
                 .map(employeeMapper::toResponse)
                 .toList();
     }
+
+    @Transactional
+    public EmployeeResponse update(Long id, EmployeeRequest request) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", id));
+
+        // Validate uniqueness only if changed
+        if (!employee.getEmail().equals(request.email()) && employeeRepository.existsByEmail(request.email())) {
+            throw new DuplicateResourceException("Employee with email '" + request.email() + "' already exists");
+        }
+
+        if (!employee.getPhone().equals(request.phone()) && employeeRepository.existsByPhone(request.phone())) {
+            throw new DuplicateResourceException("Employee with phone '" + request.phone() + "' already exists");
+        }
+
+        // Update department if changed
+        if (!employee.getDepartment().getId().equals(request.departmentId())) {
+            Department newDepartment = departmentRepository.findById(request.departmentId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Department", "id", request.departmentId()));
+            employee.setDepartment(newDepartment);
+        }
+
+        employee.setFirstName(request.firstName());
+        employee.setLastName(request.lastName());
+        employee.setEmail(request.email());
+        employee.setPhone(request.phone());
+
+        Employee updated = employeeRepository.save(employee);
+        return employeeMapper.toResponse(updated);
+    }
+
+    @Transactional
+    public void delete(Long id) {
+        Employee employee = employeeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Employee", "id", id));
+
+        employeeRepository.delete(employee);
+    }
 }
