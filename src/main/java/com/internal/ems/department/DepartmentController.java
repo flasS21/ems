@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.internal.ems.department.dto.DepartmentRequest;
 import com.internal.ems.department.dto.DepartmentResponse;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/departments")
+@Tag(name = "Departments", description = "Endpoints for managing departments")
 public class DepartmentController {
 
     private final DepartmentService departmentService;
@@ -29,8 +31,7 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<DepartmentResponse> create(
-            @Valid @RequestBody DepartmentRequest request) {
+    public ResponseEntity<DepartmentResponse> create(@Valid @RequestBody DepartmentRequest request) {
         DepartmentResponse response = departmentService.create(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -38,8 +39,7 @@ public class DepartmentController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<DepartmentResponse> getById(
-            @PathVariable Long id) {
+    public ResponseEntity<DepartmentResponse> getById(@PathVariable Long id) {
         DepartmentResponse response = departmentService.getById(id);
         return ResponseEntity
                 .status(HttpStatus.OK)
@@ -52,30 +52,24 @@ public class DepartmentController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(response);
-
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DepartmentResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody DepartmentRequest request) {
-
         DepartmentResponse response = departmentService.update(id, request);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(response);
-
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @PathVariable Long id) {
-
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         departmentService.delete(id);
         return ResponseEntity
                 .status(HttpStatus.NO_CONTENT)
                 .build();
-
     }
 
 }
