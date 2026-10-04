@@ -1,9 +1,12 @@
 package com.internal.ems.employee;
 
 import com.internal.ems.department.Department;
+import com.internal.ems.project.Project;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,6 +40,14 @@ public class Employee {
 
     @OneToOne(mappedBy = "employee", fetch = FetchType.LAZY)
     private EmployeeProfile profile;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "employee_project",
+        joinColumns = @JoinColumn(name = "employee_id"),
+        inverseJoinColumns = @JoinColumn(name = "project_id")
+    )
+    private Set<Project> projects = new HashSet<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
