@@ -23,14 +23,35 @@ The system uses a **modular monolith** architecture guided by Spring Modulith. M
 
 ```
 src/main/java/com/internal/ems/
-├── common/             # Cross-cutting concerns (exceptions, global config)
+├── common/             # Cross-cutting concerns (exceptions, OpenAPI config)
 ├── department/         # Department management domain
-└── employee/           # Employee management domain
+├── employee/           # Employee management domain (incl. EmployeeProfile)
+└── project/            # Project domain (M:N assignments with employees)
 ```
 
 - **Entities vs DTOs**: Database entities are JPA-managed classes (`@Entity`); API contracts are immutable Java `record` types.
 - **Transactions**: Defaulted to `@Transactional(readOnly = true)` at service class level for read optimization; write methods explicitly declare `@Transactional`.
 - **Validation & Errors**: Handled globally via `@RestControllerAdvice` returning structured `ErrorResponse` payloads.
+
+---
+
+## Data Model
+
+```
+department 1 ──── N employee 1 ──── 1 employee_profile
+                      │
+                      N
+                      │
+                    project          (M:N via employee_project join table)
+```
+
+| Relationship | Cardinality | FK location | Notes |
+|---|---|---|---|
+| Department → Employee | `1:N` | `employee.department_id` | Indexed; delete guarded by service (`409`) |
+| Employee ↔ EmployeeProfile | `1:1` | `employee_profile.employee_id` (`UNIQUE`) | Owning side is the profile |
+| Employee ↔ Project | `M:N` | `employee_project (employee_id, project_id)` | Composite PK enforces pair uniqueness |
+
+All associations are explicitly `LAZY`; no cascade is configured anywhere (shared/peer resources must never cascade — see `docs/Cascade-Ownership-Cardinality.md`).
 
 ---
 
@@ -130,6 +151,8 @@ Flyway controls the schema lifecycle. Hibernate is configured to validate (`ddl-
 
 - `V1__init_schema.sql` — Tables for `department`, `employee`, foreign keys, and indexes.
 - `V2__modulith_event_publication.sql` — Spring Modulith event publication log table.
+- `V3__employee_profile.sql` — `employee_profile` table (one-to-one with `employee`, unique FK).
+- `V4__project_employee_m2m.sql` — `project` table and `employee_project` join table (composite PK).
 
 ---
 
@@ -137,10 +160,11 @@ Flyway controls the schema lifecycle. Hibernate is configured to validate (`ddl-
 
 This project is an ongoing personal engineering build, not a snapshot. Areas being actively developed:
 
-- **JPA & Database** - entity relationships, N+1 detection, pagination, query optimization
+- **JPA & Database** - N+1 detection and measurement, pagination, fetch-strategy tuning
+- **Concurrency** - optimistic locking (`@Version`), unique-constraint race handling
 - **Redis Caching** - cache-aside pattern, TTL strategies, cache invalidation
 - **Integration Testing** - Testcontainers (Postgres + Redis), service and repository layers
-- **Spring Security** - JWT authentication, role-based access, Postgres Row-Level Security
-- **Async Workflows** - Kafka for cross-domain events (employee onboarding notifications, bulk imports)
-- **Observability** - structured logging, Micrometer metrics, distributed tracing with OpenTelemetry
-- **Microservice Decomposition** - extract modules into independent services behind Spring Cloud Gateway
+- **Spring Security** - JWT authentication and role-based access (auto-config exclusions removed at that point)
+- **CI / Delivery** - GitHub Actions pipeline, multi-stage non-root Dockerfile
+- **Async Workflows** - Spring Modulith domain events, later Kafka for cross-domain flows
+- **Observability** - structured logging, correlation IDs, Micrometer metrics
