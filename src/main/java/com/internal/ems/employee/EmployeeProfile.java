@@ -1,40 +1,38 @@
-package com.internal.ems.department;
+package com.internal.ems.employee;
 
-import com.internal.ems.employee.Employee;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "department")
+@Table(name = "employee_profile")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Department {
+public class EmployeeProfile {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String name;
+    @Column(length = 1000)
+    private String bio;
 
-    @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
-    private Set<Employee> employees = new HashSet<>();
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "employee_id", nullable = false, unique = true)
+    private Employee employee;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -42,8 +40,9 @@ public class Department {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public Department(String name) {
-        this.name = name;
+    public EmployeeProfile(String bio, Employee employee) {
+        this.bio = bio;
+        this.employee = employee;
     }
 
     @PrePersist
@@ -56,18 +55,5 @@ public class Department {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Department department = (Department) o;
-        return id != null && Objects.equals(id, department.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 }

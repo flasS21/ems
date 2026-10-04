@@ -1,0 +1,7 @@
+CREATE TABLE employee_profile (
+    id BIGSERIAL PRIMARY KEY,
+    employee_id BIGINT NOT NULL UNIQUE REFERENCES employee(id),
+    bio VARCHAR(1000),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);

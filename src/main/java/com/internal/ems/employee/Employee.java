@@ -2,12 +2,11 @@ package com.internal.ems.employee;
 
 import com.internal.ems.department.Department;
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.time.Instant;
-import java.util.Objects;
 
 @Entity
 @Table(name = "employee")
@@ -36,13 +35,22 @@ public class Employee {
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
+    @OneToOne(mappedBy = "employee", fetch = FetchType.LAZY)
+    private EmployeeProfile profile;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    public Employee(String firstName, String lastName, String email, String phone, Department department) {
+    public Employee(
+        String firstName,
+        String lastName,
+        String email,
+        String phone,
+        Department department
+    ) {
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
